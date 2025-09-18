@@ -198,6 +198,50 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // DSS: Suggest schemes and priority index
+  app.post("/api/dss/suggest", async (req, res) => {
+    try {
+      const { claimId, claim } = req.body || {};
+      let targetClaim: any = claim;
+      if (!targetClaim && claimId) {
+        targetClaim = await storage.getClaim(claimId);
+      }
+
+      if (!targetClaim) {
+        return res.status(400).json({ message: "Claim data or claimId is required" });
+      }
+
+      // Simple rules for demo
+      const schemes: Array<{ name: string; reason: string }>= [];
+      const reasons: string[] = [];
+
+      const areaNum = Number(targetClaim.area || 0);
+      if (areaNum >= 3) schemes.push({ name: "Watershed Development", reason: "Area >= 3 ha" });
+      if (areaNum >= 1 && areaNum < 3) schemes.push({ name: "MGNREGA Farm Ponds", reason: "Smallholder water harvesting" });
+      if ((targetClaim.village || '').toLowerCase().includes('mendha')) schemes.push({ name: "Community Forest Management", reason: "Community-managed forest potential" });
+      if (!targetClaim.boundaryGeometry) schemes.push({ name: "GIS Survey Support", reason: "Boundary pending mapping" });
+      if ((targetClaim.ocrConfidence ?? 100) < 60) reasons.push("Low OCR confidence - manual verification priority");
+
+      // Mock indices
+      const waterIndex = Math.max(0, 100 - Math.round(areaNum * 10));
+      const forestCoverIndex = (targetClaim.village || '').toLowerCase().includes('bamni') ? 45 : 70;
+      const priorityIndex = Math.min(100, Math.round((100 - waterIndex) * 0.5 + (100 - forestCoverIndex) * 0.5));
+
+      res.json({
+        schemes,
+        priorityIndex,
+        indicators: {
+          waterIndex,
+          forestCoverIndex,
+        },
+        reasons,
+      });
+    } catch (error) {
+      console.error("Error in DSS suggest:", error);
+      res.status(500).json({ message: "Failed to compute suggestions" });
+    }
+  });
+
   // Process OCR corrections and create claim
   app.post("/api/ocr/save", async (req, res) => {
     try {

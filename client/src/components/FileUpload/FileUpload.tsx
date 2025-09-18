@@ -10,6 +10,8 @@ import { cn } from "@/lib/utils";
 export function FileUpload() {
   const [isDragOver, setIsDragOver] = useState(false);
   const [showOCRModal, setShowOCRModal] = useState(false);
+  const [reviewQueue, setReviewQueue] = useState<Array<{ file: any; ocrResult: any }>>([]);
+  const [currentIndex, setCurrentIndex] = useState(0);
   const { uploadState, ocrResult, uploadFile, resetUpload } = useFileUpload();
 
   const handleDragOver = useCallback((e: React.DragEvent) => {
@@ -27,30 +29,49 @@ export function FileUpload() {
     setIsDragOver(false);
     
     const files = Array.from(e.dataTransfer.files);
-    const file = files[0];
-    
-    if (file) {
+    if (!files.length) return;
+
+    const newQueue: Array<{ file: any; ocrResult: any }> = [];
+    for (const file of files) {
       const result = await uploadFile(file);
-      if (result) {
-        setShowOCRModal(true);
-      }
+      if (result) newQueue.push(result);
+    }
+    if (newQueue.length) {
+      setReviewQueue(newQueue);
+      setCurrentIndex(0);
+      setShowOCRModal(true);
     }
   }, [uploadFile]);
 
   const handleFileSelect = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
+    const files = e.target.files ? Array.from(e.target.files) : [];
+    if (!files.length) return;
+
+    const newQueue: Array<{ file: any; ocrResult: any }> = [];
+    for (const file of files) {
       const result = await uploadFile(file);
-      if (result) {
-        setShowOCRModal(true);
-      }
+      if (result) newQueue.push(result);
+    }
+    if (newQueue.length) {
+      setReviewQueue(newQueue);
+      setCurrentIndex(0);
+      setShowOCRModal(true);
     }
   }, [uploadFile]);
 
   const handleOCRModalClose = useCallback(() => {
+    // Advance to next in queue if available, else close and reset
+    if (reviewQueue.length && currentIndex < reviewQueue.length - 1) {
+      setCurrentIndex((idx) => idx + 1);
+      // clear hook state between items
+      resetUpload();
+      return;
+    }
     setShowOCRModal(false);
+    setReviewQueue([]);
+    setCurrentIndex(0);
     resetUpload();
-  }, [resetUpload]);
+  }, [reviewQueue.length, currentIndex, resetUpload]);
 
   return (
     <div className="space-y-8">
@@ -85,6 +106,7 @@ export function FileUpload() {
             <input
               type="file"
               accept=".pdf,.jpg,.jpeg,.png"
+              multiple
               onChange={handleFileSelect}
               className="hidden"
               id="file-upload"
@@ -112,6 +134,12 @@ export function FileUpload() {
                 <p className="text-sm text-muted-foreground">
                   Processing... {uploadState.uploadProgress}%
                 </p>
+              </div>
+            )}
+
+            {reviewQueue.length > 1 && (
+              <div className="mt-4 text-xs text-muted-foreground">
+                {`Ready to review ${reviewQueue.length} files`}
               </div>
             )}
             
@@ -172,7 +200,7 @@ export function FileUpload() {
       <OCRReviewModal
         isOpen={showOCRModal}
         onClose={handleOCRModalClose}
-        ocrData={ocrResult}
+        ocrData={reviewQueue.length ? reviewQueue[currentIndex] : ocrResult}
       />
     </div>
   );

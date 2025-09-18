@@ -113,7 +113,7 @@ Date: [smudged]`,
     const timestamp = Date.now().toString().slice(-4);
     const uniqueClaimId = `FRA-2024-${timestamp}`;
 
-    const result: OCRResult = {
+    let result: OCRResult = {
       ...mockResult,
       claimId: uniqueClaimId,
       confidence: Math.round(finalConfidence)
@@ -133,7 +133,26 @@ Date: [smudged]`,
     }
 
     console.log(`OCR processed file: ${filePath}, confidence: ${result.confidence}%`);
-    
+
+    // Auto-fill missing entities using lightweight NLP extraction
+    try {
+      const entities = await this.extractEntities(result.rawText || "");
+      if (!result.claimantName && entities.names[0]) {
+        result = { ...result, claimantName: entities.names[0] };
+      }
+      if (!result.village && entities.villages[0]) {
+        result = { ...result, village: entities.villages[0] };
+      }
+      if (!result.claimId && entities.ids[0]) {
+        result = { ...result, claimId: entities.ids[0] };
+      }
+      if (!result.area && entities.areas[0]) {
+        result = { ...result, area: entities.areas[0] };
+      }
+    } catch (err) {
+      console.warn("Entity extraction failed:", err);
+    }
+
     return result;
   }
 

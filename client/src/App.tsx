@@ -8,6 +8,7 @@ import Dashboard from "@/pages/Dashboard";
 import FileUpload from "@/pages/FileUpload";
 import InteractiveMap from "@/pages/InteractiveMap";
 import ClaimsManagement from "@/pages/ClaimsManagement";
+import Analytics from "@/pages/Analytics";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -17,6 +18,7 @@ function Router() {
       <Route path="/upload" component={FileUpload} />
       <Route path="/map" component={InteractiveMap} />
       <Route path="/claims" component={ClaimsManagement} />
+      <Route path="/analytics" component={Analytics} />
       <Route component={NotFound} />
     </Switch>
   );

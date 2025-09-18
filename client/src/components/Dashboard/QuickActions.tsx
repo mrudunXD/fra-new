@@ -1,4 +1,7 @@
 import { Link } from "wouter";
+import { useQuery } from "@tanstack/react-query";
+import { api } from "@/lib/api";
+import type { ClaimWithFiles } from "@/types";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -10,6 +13,33 @@ import {
 } from "lucide-react";
 
 export function QuickActions() {
+  const { data: claims } = useQuery<ClaimWithFiles[]>({
+    queryKey: ["/api/claims", 1000],
+    queryFn: () => api.getClaims(1000),
+  });
+
+  const exportCSV = () => {
+    const rows = (claims || []).map(c => ({
+      claimId: c.claimId,
+      claimantName: c.claimantName,
+      village: c.village,
+      district: c.district || "",
+      state: c.state || "",
+      area: c.area,
+      status: c.status,
+      ocrConfidence: c.ocrConfidence ?? "",
+      createdAt: c.createdAt as any,
+    }));
+    const header = Object.keys(rows[0] || { claimId: '', claimantName: '' });
+    const csv = [header.join(','), ...rows.map(r => header.map(h => JSON.stringify((r as any)[h] ?? "")).join(','))].join('\n');
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `claims_${new Date().toISOString().slice(0,10)}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
   const actions = [
     {
       title: "View Map",
@@ -21,7 +51,7 @@ export function QuickActions() {
       title: "New Claim",
       icon: Plus,
       color: "text-accent",
-      href: "/claims/new",
+      href: "/upload",
     },
     {
       title: "Search Claims",
@@ -34,10 +64,7 @@ export function QuickActions() {
       icon: Download,
       color: "text-chart-1",
       href: "#",
-      onClick: () => {
-        // Implement export functionality
-        console.log("Export data clicked");
-      },
+      onClick: exportCSV,
     },
   ];
 

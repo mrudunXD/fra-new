@@ -112,6 +112,11 @@ export function OCRReviewModal({ isOpen, onClose, ocrData }: OCRReviewModalProps
       ? "bg-chart-1/10 text-chart-1" 
       : "bg-destructive/10 text-destructive";
 
+  const lowConfidence = ocrResult.confidence < 60;
+  const fieldClass = (required?: boolean) => (
+    `${required && lowConfidence ? 'ring-1 ring-destructive/50' : ''}`
+  );
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
@@ -170,7 +175,7 @@ export function OCRReviewModal({ isOpen, onClose, ocrData }: OCRReviewModalProps
                   id="claimantName"
                   value={formData.claimantName}
                   onChange={(e) => handleInputChange("claimantName", e.target.value)}
-                  className="mt-1"
+                  className={`mt-1 ${fieldClass(true)}`}
                   data-testid="input-claimant-name"
                 />
               </div>
@@ -183,7 +188,7 @@ export function OCRReviewModal({ isOpen, onClose, ocrData }: OCRReviewModalProps
                   id="village"
                   value={formData.village}
                   onChange={(e) => handleInputChange("village", e.target.value)}
-                  className="mt-1"
+                  className={`mt-1 ${fieldClass(true)}`}
                   data-testid="input-village"
                 />
               </div>
@@ -196,7 +201,7 @@ export function OCRReviewModal({ isOpen, onClose, ocrData }: OCRReviewModalProps
                   id="claimId"
                   value={formData.claimId}
                   onChange={(e) => handleInputChange("claimId", e.target.value)}
-                  className="mt-1"
+                  className={`mt-1 ${fieldClass(true)}`}
                   data-testid="input-claim-id"
                 />
               </div>
@@ -211,7 +216,7 @@ export function OCRReviewModal({ isOpen, onClose, ocrData }: OCRReviewModalProps
                   step="0.01"
                   value={formData.area}
                   onChange={(e) => handleInputChange("area", e.target.value)}
-                  className="mt-1"
+                  className={`mt-1 ${fieldClass(true)}`}
                   data-testid="input-area"
                 />
               </div>

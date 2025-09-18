@@ -10,6 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { api } from "@/lib/api";
+import { useToast } from "@/hooks/use-toast";
 import { Layers, Edit, Maximize2, Search, Filter, MapPin, Target, ZoomIn } from "lucide-react";
 import "leaflet/dist/leaflet.css";
 import "leaflet-draw/dist/leaflet.draw.css";
@@ -146,6 +147,9 @@ export function EnhancedMapComponent({ height = "500px", interactive = true }: E
   const [showLayers, setShowLayers] = useState(false);
   const [showVillageBoundaries, setShowVillageBoundaries] = useState(false);
   const [showClaimBoundaries, setShowClaimBoundaries] = useState(true);
+  const [showAssets, setShowAssets] = useState({ agriculture: false, forest: false, water: false, homestead: false });
+  const [selectedClaimId, setSelectedClaimId] = useState<string | null>(null);
+  const [selectedClaimName, setSelectedClaimName] = useState<string | null>(null);
   const [filters, setFilters] = useState<MapFilters>({
     status: 'all',
     state: 'all',
@@ -153,6 +157,7 @@ export function EnhancedMapComponent({ height = "500px", interactive = true }: E
     village: 'all',
     searchTerm: ''
   });
+  const { toast } = useToast();
   
   const { data: mapData, isLoading } = useQuery({
     queryKey: ["/api/map/claims"],
@@ -297,11 +302,31 @@ export function EnhancedMapComponent({ height = "500px", interactive = true }: E
     });
   };
 
-  const handleDrawCreated = (e: any) => {
+  const handleDrawCreated = async (e: any) => {
     const { layer } = e;
     const geoJson = layer.toGeoJSON();
     setDrawnShapes(prev => [...prev, geoJson]);
-    console.log("New shape drawn:", geoJson);
+    if (!selectedClaimId) {
+      toast({
+        title: "Select a claim first",
+        description: "Click an existing claim to select it, then draw the boundary.",
+        variant: "destructive",
+      });
+      return;
+    }
+    try {
+      await api.saveClaimBoundary(selectedClaimId, geoJson.geometry);
+      toast({
+        title: "Boundary saved",
+        description: selectedClaimName ? `Saved for ${selectedClaimName}` : "Boundary saved successfully.",
+      });
+    } catch (err) {
+      toast({
+        title: "Save failed",
+        description: err instanceof Error ? err.message : "Could not save boundary",
+        variant: "destructive",
+      });
+    }
   };
 
   const handleDrawEdited = (e: any) => {
@@ -397,6 +422,14 @@ export function EnhancedMapComponent({ height = "500px", interactive = true }: E
       </div>
     `;
     layer.bindPopup(popupContent);
+    layer.on('click', () => {
+      setSelectedClaimId(props.id);
+      setSelectedClaimName(props.claimantName || props.claimId);
+      toast({
+        title: "Claim selected",
+        description: `${props.claimantName || props.claimId} selected. Now draw to save boundary.`,
+      });
+    });
   };
 
   return (
@@ -447,7 +480,8 @@ export function EnhancedMapComponent({ height = "500px", interactive = true }: E
           </div>
         </div>
 
-        {/* Search and Filter Controls */}
+        {/* Search and Filter Controls */
+        }
         {showFilters && (
           <div className="mt-4 p-4 bg-muted rounded-lg space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-3">
@@ -523,6 +557,12 @@ export function EnhancedMapComponent({ height = "500px", interactive = true }: E
                 Reset
               </Button>
             </div>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 pt-2 border-t">
+              <Button size="sm" variant={showAssets.agriculture ? 'default' : 'secondary'} onClick={() => setShowAssets(s => ({ ...s, agriculture: !s.agriculture }))}>Agri Layer</Button>
+              <Button size="sm" variant={showAssets.forest ? 'default' : 'secondary'} onClick={() => setShowAssets(s => ({ ...s, forest: !s.forest }))}>Forest Layer</Button>
+              <Button size="sm" variant={showAssets.water ? 'default' : 'secondary'} onClick={() => setShowAssets(s => ({ ...s, water: !s.water }))}>Water Layer</Button>
+              <Button size="sm" variant={showAssets.homestead ? 'default' : 'secondary'} onClick={() => setShowAssets(s => ({ ...s, homestead: !s.homestead }))}>Homestead Layer</Button>
+            </div>
           </div>
         )}
       </CardHeader>
@@ -594,8 +634,34 @@ export function EnhancedMapComponent({ height = "500px", interactive = true }: E
                 />
               )}
 
-              {/* Drawing controls - temporarily disabled due to configuration issues */}
-              {false && interactive && (
+              {/* Mock AI asset layers: simple transparent polygons/markers */}
+              {showAssets.agriculture && (
+                <GeoJSON
+                  data={{ type: 'Feature', properties: {}, geometry: { type: 'Polygon', coordinates: [[[77.9, 20.1],[78.1,20.1],[78.1,20.3],[77.9,20.3],[77.9,20.1]]] } } as any}
+                  style={{ color: '#22c55e', weight: 1, opacity: 0.7, fillOpacity: 0.15 }}
+                />
+              )}
+              {showAssets.forest && (
+                <GeoJSON
+                  data={{ type: 'Feature', properties: {}, geometry: { type: 'Polygon', coordinates: [[[77.7, 19.9],[77.85,19.9],[77.85,20.05],[77.7,20.05],[77.7,19.9]]] } } as any}
+                  style={{ color: '#16a34a', weight: 1, opacity: 0.7, fillOpacity: 0.15 }}
+                />
+              )}
+              {showAssets.water && (
+                <GeoJSON
+                  data={{ type: 'Feature', properties: {}, geometry: { type: 'Polygon', coordinates: [[[78.2, 20.0],[78.28,20.0],[78.28,20.08],[78.2,20.08],[78.2,20.0]]] } } as any}
+                  style={{ color: '#3b82f6', weight: 1, opacity: 0.7, fillOpacity: 0.2 }}
+                />
+              )}
+              {showAssets.homestead && (
+                <GeoJSON
+                  data={{ type: 'Feature', properties: {}, geometry: { type: 'Polygon', coordinates: [[[77.95, 20.25],[78.0,20.25],[78.0,20.3],[77.95,20.3],[77.95,20.25]]] } } as any}
+                  style={{ color: '#f43f5e', weight: 1, opacity: 0.7, fillOpacity: 0.15 }}
+                />
+              )}
+
+              {/* Drawing controls */}
+              {interactive && (
                 <FeatureGroup>
                   <EditControl
                     position="topleft"
@@ -611,8 +677,12 @@ export function EnhancedMapComponent({ height = "500px", interactive = true }: E
                       polyline: false,
                     }}
                     edit={{
-                      edit: false,
-                      remove: false,
+                      edit: {
+                        selectedPathOptions: {
+                          maintainColor: true,
+                        },
+                      },
+                      remove: true,
                     }}
                   />
                 </FeatureGroup>

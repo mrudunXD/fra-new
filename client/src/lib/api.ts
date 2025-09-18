@@ -74,4 +74,10 @@ export const api = {
     const response = await apiRequest("POST", "/api/ocr/save", ocrData);
     return response.json();
   },
+
+  // DSS
+  getDssSuggestions: async (payload: { claimId?: string; claim?: any }): Promise<any> => {
+    const response = await apiRequest("POST", "/api/dss/suggest", payload);
+    return response.json();
+  },
 };

@@ -1,6 +1,7 @@
 import { Header } from "@/components/Layout/Header";
 import { StatsGrid } from "@/components/Dashboard/StatsGrid";
 import { QuickActions } from "@/components/Dashboard/QuickActions";
+import { AnalyticsCharts } from "@/components/Dashboard/AnalyticsCharts";
 import { FileUpload } from "@/components/FileUpload/FileUpload";
 import { EnhancedMapComponent } from "@/components/Map/EnhancedMapComponent";
 import { ClaimsTable } from "@/components/Claims/ClaimsTable";
@@ -20,6 +21,8 @@ export default function Dashboard() {
           <FileUpload />
           <QuickActions />
         </div>
+
+        <AnalyticsCharts />
 
         <div className="mb-8">
           <EnhancedMapComponent height="500px" />
