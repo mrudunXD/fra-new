@@ -19,12 +19,40 @@ export const users = pgTable("users", {
 export const claims = pgTable("claims", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   claimId: text("claim_id").notNull().unique(), // e.g., FRA-2024-001
+  
+  // Basic Information
   claimantName: text("claimant_name").notNull(),
+  spouseName: text("spouse_name"),
+  fatherMotherName: text("father_mother_name"),
+  address: text("address"),
   village: text("village").notNull(),
+  gramPanchayat: text("gram_panchayat"),
+  tehsilTaluka: text("tehsil_taluka"),
   district: text("district"),
   state: text("state"),
-  area: decimal("area", { precision: 10, scale: 2 }).notNull(), // in hectares
+  
+  // Tribal Status
+  scheduledTribe: text("scheduled_tribe"), // Yes/No
+  scheduledTribeCertificate: text("scheduled_tribe_certificate"), // Certificate details
+  otherTraditionalForestDweller: text("other_traditional_forest_dweller"), // Yes/No
+  spouseScheduledTribe: text("spouse_scheduled_tribe"), // Yes/No if spouse is ST
+  
+  // Family Members (stored as JSON array)
+  familyMembers: jsonb("family_members"), // [{name: string, age: number, relation: string}]
+  
+  // Nature of Claim on Land
+  landForHabitation: decimal("land_for_habitation", { precision: 10, scale: 2 }),
+  landForSelfCultivation: decimal("land_for_self_cultivation", { precision: 10, scale: 2 }),
+  disputedLands: decimal("disputed_lands", { precision: 10, scale: 2 }),
+  pattasLeasesGrants: decimal("pattas_leases_grants", { precision: 10, scale: 2 }),
+  landForRehabilitationAlternative: decimal("land_for_rehabilitation_alternative", { precision: 10, scale: 2 }),
+  landDisplacedWithoutCompensation: decimal("land_displaced_without_compensation", { precision: 10, scale: 2 }),
+  
+  // Legacy fields for backward compatibility
+  area: decimal("area", { precision: 10, scale: 2 }).notNull(), // Total area in hectares
   surveyNumber: text("survey_number"),
+  
+  // System fields
   status: claimStatusEnum("status").default("pending").notNull(),
   ocrConfidence: integer("ocr_confidence"), // percentage 0-100
   boundaryGeometry: jsonb("boundary_geometry"), // GeoJSON
@@ -110,13 +138,38 @@ export type DashboardStats = {
 };
 
 export type OCRResult = {
+  // Basic Information
   claimantName: string;
+  spouseName?: string;
+  fatherMotherName?: string;
+  address?: string;
   village: string;
+  gramPanchayat?: string;
+  tehsilTaluka?: string;
+  district?: string;
+  state?: string;
+  
+  // Tribal Status
+  scheduledTribe?: string;
+  scheduledTribeCertificate?: string;
+  otherTraditionalForestDweller?: string;
+  spouseScheduledTribe?: string;
+  
+  // Family Members
+  familyMembers?: Array<{name: string; age: number; relation: string}>;
+  
+  // Nature of Claim on Land
+  landForHabitation?: number;
+  landForSelfCultivation?: number;
+  disputedLands?: number;
+  pattasLeasesGrants?: number;
+  landForRehabilitationAlternative?: number;
+  landDisplacedWithoutCompensation?: number;
+  
+  // Legacy fields
   claimId: string;
   area: string;
   surveyNumber?: string;
-  district?: string;
-  state?: string;
   rawText: string;
   confidence: number;
 };

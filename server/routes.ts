@@ -269,16 +269,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const claimData = {
         claimId: ocrData.claimId,
         claimantName: ocrData.claimantName,
+        spouseName: ocrData.spouseName || null,
+        fatherMotherName: ocrData.fatherMotherName || null,
+        address: ocrData.address || null,
         village: ocrData.village,
+        gramPanchayat: ocrData.gramPanchayat || null,
+        tehsilTaluka: ocrData.tehsilTaluka || null,
         district: ocrData.district || villageLocation?.district || null,
         state: ocrData.state || villageLocation?.state || null,
+        scheduledTribe: ocrData.scheduledTribe || null,
+        scheduledTribeCertificate: ocrData.scheduledTribeCertificate || null,
+        otherTraditionalForestDweller: ocrData.otherTraditionalForestDweller || null,
+        spouseScheduledTribe: ocrData.spouseScheduledTribe || null,
+        familyMembers: ocrData.familyMembers ? JSON.stringify(ocrData.familyMembers) : null,
+        landForHabitation: ocrData.landForHabitation?.toString() || null,
+        landForSelfCultivation: ocrData.landForSelfCultivation?.toString() || null,
+        disputedLands: ocrData.disputedLands?.toString() || null,
+        pattasLeasesGrants: ocrData.pattasLeasesGrants?.toString() || null,
+        landForRehabilitationAlternative: ocrData.landForRehabilitationAlternative?.toString() || null,
+        landDisplacedWithoutCompensation: ocrData.landDisplacedWithoutCompensation?.toString() || null,
         area: ocrData.area,
         surveyNumber: ocrData.surveyNumber || null,
         status: "pending" as const,
         ocrConfidence: ocrData.confidence || null,
         boundaryGeometry: boundaryGeometry,
         rawOcrText: ocrData.rawText || null,
-        userId: "default-user-id", // TODO: Replace with actual user authentication
+        userId: null, // TODO: Replace with actual user authentication
       };
 
       const claim = await storage.createClaim(claimData);
@@ -291,7 +307,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Update the file record to include the claim and user IDs
         await storage.updateFile(ocrData.fileId, {
           claimId: claim.id,
-          userId: "default-user-id", // TODO: Replace with actual user authentication
+          userId: null, // TODO: Replace with actual user authentication
         });
       }
 

@@ -13,61 +13,66 @@ import type { OCRResult } from "@shared/schema";
  * For this MVP, we simulate OCR processing with realistic results.
  */
 class OCRService {
-  private mockResults: OCRResult[] = [
-    {
-      claimantName: "Ramesh Kumar",
-      village: "Kachargaon",
-      claimId: "FRA-2024-001",
-      area: "2.45",
-      surveyNumber: "123/2A",
-      district: "Gadchiroli",
-      state: "Maharashtra",
-      rawText: `FOREST RIGHTS ACT CLAIM FORM
-Claimant: Ramesh Kumar
-Village: Kachargaon
-District: Gadchiroli
-State: Maharashtra
-Claim ID: FRA-2024-001
-Area: 2.45 hectares
-Survey No: 123/2A
-Date: 15-03-2024`,
-      confidence: 94
-    },
-    {
-      claimantName: "Sita Devi",
-      village: "Bamni",
-      claimId: "FRA-2024-002",
-      area: "1.87",
-      surveyNumber: "87/1B",
-      district: "Gadchiroli",
-      state: "Maharashtra",
-      rawText: `फॉरेस्ट राइट्स एक्ट क्लेम फॉर्म
-दावेदार: सीता देवी
-गाव: बामनी
-जिल्हा: गडचिरोली
-राज्य: महाराष्ट्र
-क्लेम आयडी: FRA-2024-002
-क्षेत्र: 1.87 हेक्टर
-सर्वे नं: 87/1B`,
-      confidence: 67
-    },
-    {
-      claimantName: "Mohan Singh",
-      village: "Mendha",
-      claimId: "FRA-2024-003",
-      area: "3.12",
-      district: "Gadchiroli",
-      state: "Maharashtra",
-      rawText: `FOREST RIGHTS CLAIM
-Name: Mohan Singh
-Village: Mendha
-Area: 3.12 hectares
-[Handwritten text - partially illegible]
-Survey: [unclear]
-Date: [smudged]`,
-      confidence: 23
-    }
-  ];
+  private generateMockResult(uniqueClaimId: string, confidence: number): OCRResult {
+    // Mock OCR results with comprehensive FORM-A data
+    const villages = ['Kachargaon', 'Mendha', 'Bamni', 'Navegaon', 'Dhamangaon', 'Pench', 'Tadoba'];
+    const maleNames = ['Ramesh Kumar', 'Mohan Singh', 'Suresh Yadav', 'Devendra Rao', 'Prakash Gond'];
+    const femaleNames = ['Sita Devi', 'Geeta Bai', 'Kamala Devi', 'Savita Kumari', 'Madhuri Bai'];
+    const districts = ['Seoni', 'Gadchiroli', 'Gondia', 'Wardha', 'Amravati', 'Chandrapur'];
+    const states = ['Madhya Pradesh', 'Maharashtra'];
+    const gramPanchayats = ['Gram Panchayat Kachargaon', 'Gram Panchayat Mendha', 'Gram Panchayat Central'];
+    const tehsils = ['Seoni', 'Kurkheda', 'Gondia', 'Hinganghat', 'Chikhaldara'];
+
+    const selectedVillage = villages[Math.floor(Math.random() * villages.length)];
+    const selectedName = [...maleNames, ...femaleNames][Math.floor(Math.random() * (maleNames.length + femaleNames.length))];
+    const selectedSpouse = femaleNames[Math.floor(Math.random() * femaleNames.length)];
+    const selectedDistrict = districts[Math.floor(Math.random() * districts.length)];
+    const selectedState = states[Math.floor(Math.random() * states.length)];
+    const selectedGramPanchayat = gramPanchayats[Math.floor(Math.random() * gramPanchayats.length)];
+    const selectedTehsil = tehsils[Math.floor(Math.random() * tehsils.length)];
+    
+    const totalArea = parseFloat((1 + Math.random() * 4).toFixed(2)); // 1-5 hectares
+
+    // Generate family members
+    const familyMembers = [
+      { name: selectedSpouse, age: 25 + Math.floor(Math.random() * 15), relation: 'Spouse' },
+      { name: 'Ravi Kumar', age: 8 + Math.floor(Math.random() * 12), relation: 'Son' },
+      { name: 'Meera Kumari', age: 6 + Math.floor(Math.random() * 10), relation: 'Daughter' }
+    ];
+
+    // Distribute area across different types
+    const habitationArea = parseFloat((totalArea * 0.3).toFixed(2));
+    const cultivationArea = parseFloat((totalArea * 0.6).toFixed(2));
+    const remainingArea = parseFloat((totalArea - habitationArea - cultivationArea).toFixed(2));
+
+    return {
+      claimantName: selectedName,
+      spouseName: selectedSpouse,
+      fatherMotherName: 'Late Govind Rao',
+      address: `Village ${selectedVillage}, Post ${selectedVillage}`,
+      village: selectedVillage,
+      gramPanchayat: selectedGramPanchayat,
+      tehsilTaluka: selectedTehsil,
+      district: selectedDistrict,
+      state: selectedState,
+      scheduledTribe: Math.random() > 0.5 ? 'Yes' : 'No',
+      scheduledTribeCertificate: 'ST Certificate No. ST/2020/1234',
+      otherTraditionalForestDweller: Math.random() > 0.5 ? 'Yes' : 'No',
+      spouseScheduledTribe: 'Yes',
+      familyMembers: familyMembers,
+      landForHabitation: habitationArea,
+      landForSelfCultivation: cultivationArea,
+      disputedLands: remainingArea > 0 ? remainingArea : 0,
+      pattasLeasesGrants: 0,
+      landForRehabilitationAlternative: 0,
+      landDisplacedWithoutCompensation: 0,
+      claimId: uniqueClaimId,
+      area: totalArea.toString(),
+      surveyNumber: `SY-${Math.floor(Math.random() * 9999) + 1000}`,
+      rawText: `FORM – A\nCLAIM FORM FOR RIGHTS TO FOREST LAND\n\n1. Name of the claimant: ${selectedName}\n2. Name of the spouse: ${selectedSpouse}\n3. Name of father/mother: Late Govind Rao\n4. Address: Village ${selectedVillage}, Post ${selectedVillage}\n5. Village: ${selectedVillage}\n6. Gram Panchayat: ${selectedGramPanchayat}\n7. Tehsil/Taluka: ${selectedTehsil}\n8. District: ${selectedDistrict}\n9. (a) Scheduled Tribe: Yes\n   (b) Other Traditional Forest Dweller: No\n10. Family members: ${familyMembers.map(m => `${m.name} (${m.age} years, ${m.relation})`).join(', ')}\n\nNature of claim on land:\n1. Extent of forest land occupied\n   (a) for habitation: ${habitationArea} hectares\n   (b) for self-cultivation: ${cultivationArea} hectares\n   Total area: ${totalArea} hectares\n\nExtracted with ${confidence.toFixed(1)}% confidence.`,
+      confidence: Math.round(confidence)
+    };
+  }
 
   /**
    * Process uploaded file and extract structured data
@@ -106,18 +111,12 @@ Date: [smudged]`,
       baseConfidence + (Math.random() * 20 - 10)
     ));
 
-    // Select a mock result and adjust confidence
-    const mockResult = this.mockResults[Math.floor(Math.random() * this.mockResults.length)];
-    
     // Generate unique claim ID for each processing
     const timestamp = Date.now().toString().slice(-4);
     const uniqueClaimId = `FRA-2024-${timestamp}`;
 
-    let result: OCRResult = {
-      ...mockResult,
-      claimId: uniqueClaimId,
-      confidence: Math.round(finalConfidence)
-    };
+    // Generate comprehensive mock result using the new method
+    let result: OCRResult = this.generateMockResult(uniqueClaimId, finalConfidence);
 
     // Simulate different quality results based on confidence
     if (result.confidence < 50) {
