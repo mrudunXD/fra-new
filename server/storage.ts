@@ -21,6 +21,7 @@ export interface IStorage {
   getFilesByClaimId(claimId: string): Promise<UploadedFile[]>;
   createFile(file: InsertFile): Promise<UploadedFile>;
   updateFileStatus(id: string, status: "uploaded" | "processing" | "processed" | "failed"): Promise<UploadedFile>;
+  updateFile(id: string, updates: Partial<InsertFile>): Promise<UploadedFile>;
   
   // Dashboard
   getDashboardStats(): Promise<DashboardStats>;
@@ -135,6 +136,15 @@ export class DatabaseStorage implements IStorage {
     return file;
   }
 
+  async updateFile(id: string, updates: Partial<InsertFile>): Promise<UploadedFile> {
+    const [file] = await db
+      .update(uploadedFiles)
+      .set(updates)
+      .where(eq(uploadedFiles.id, id))
+      .returning();
+    return file;
+  }
+
   // Dashboard
   async getDashboardStats(): Promise<DashboardStats> {
     const [totalClaimsResult] = await db.select({ count: count() }).from(claims);
@@ -227,6 +237,13 @@ class MemoryStorage implements IStorage {
     const file = this.filesData.find(f => f.id === id);
     if (!file) throw new Error('File not found');
     (file as any).status = status;
+    return file;
+  }
+
+  async updateFile(id: string, updates: Partial<InsertFile>): Promise<UploadedFile> {
+    const file = this.filesData.find(f => f.id === id);
+    if (!file) throw new Error('File not found');
+    Object.assign(file, updates);
     return file;
   }
 

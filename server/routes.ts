@@ -6,6 +6,7 @@ import fs from "fs";
 import { storage } from "./storage";
 import { insertClaimSchema, insertFileSchema } from "@shared/schema";
 import { ocrService } from "./services/ocrService";
+import { BoundaryService } from "./services/boundaryService";
 
 // Configure multer for file uploads
 const uploadDir = path.join(process.cwd(), "uploads");
@@ -258,19 +259,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Claim ID already exists" });
       }
 
+      // Generate random boundary geometry based on village and area
+      const areaInHectares = parseFloat(ocrData.area);
+      const boundaryGeometry = BoundaryService.generateRandomBoundary(ocrData.village, areaInHectares);
+      
+      // Get village location data to populate district/state if missing
+      const villageLocation = BoundaryService.getVillageLocation(ocrData.village);
+
       const claimData = {
         claimId: ocrData.claimId,
         claimantName: ocrData.claimantName,
         village: ocrData.village,
-        district: ocrData.district || null,
-        state: ocrData.state || null,
+        district: ocrData.district || villageLocation?.district || null,
+        state: ocrData.state || villageLocation?.state || null,
         area: ocrData.area,
         surveyNumber: ocrData.surveyNumber || null,
         status: "pending" as const,
         ocrConfidence: ocrData.confidence || null,
-        boundaryGeometry: null,
+        boundaryGeometry: boundaryGeometry,
         rawOcrText: ocrData.rawText || null,
-        userId: null, // Add user authentication later
+        userId: "default-user-id", // TODO: Replace with actual user authentication
       };
 
       const claim = await storage.createClaim(claimData);
@@ -279,6 +287,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (ocrData.fileId) {
         // Update the uploaded file to link it to this claim
         await storage.updateFileStatus(ocrData.fileId, "processed");
+        
+        // Update the file record to include the claim and user IDs
+        await storage.updateFile(ocrData.fileId, {
+          claimId: claim.id,
+          userId: "default-user-id", // TODO: Replace with actual user authentication
+        });
       }
 
       res.status(201).json(claim);
