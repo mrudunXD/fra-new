@@ -1,5 +1,7 @@
 import { Bell, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useLocation } from "wouter";
+import { useToast } from "@/hooks/use-toast";
 
 interface HeaderProps {
   title: string;
@@ -7,6 +9,20 @@ interface HeaderProps {
 }
 
 export function Header({ title, description }: HeaderProps) {
+  const [, setLocation] = useLocation();
+  const { toast } = useToast();
+
+  const handleNotificationClick = () => {
+    toast({
+      title: "Notifications",
+      description: "You have 3 new notifications: 2 claims pending review, 1 OCR processing complete.",
+    });
+  };
+
+  const handleNewClaimClick = () => {
+    setLocation("/upload");
+  };
+
   return (
     <header className="bg-card border-b border-border px-6 py-4">
       <div className="flex items-center justify-between">
@@ -19,6 +35,7 @@ export function Header({ title, description }: HeaderProps) {
             variant="ghost" 
             size="icon" 
             className="relative"
+            onClick={handleNotificationClick}
             data-testid="button-notifications"
           >
             <Bell className="h-5 w-5" />
@@ -26,7 +43,7 @@ export function Header({ title, description }: HeaderProps) {
               3
             </span>
           </Button>
-          <Button data-testid="button-new-claim">
+          <Button onClick={handleNewClaimClick} data-testid="button-new-claim">
             <Plus className="mr-2 h-4 w-4" />
             New Claim
           </Button>

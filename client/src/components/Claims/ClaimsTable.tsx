@@ -13,6 +13,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { useToast } from "@/hooks/use-toast";
+import { useLocation } from "wouter";
 import { api } from "@/lib/api";
 import { Eye, Edit, MapPin, ArrowRight, Trash2 } from "lucide-react";
 import type { ClaimWithFiles } from "@/types";
@@ -30,6 +31,7 @@ export function ClaimsTable({ limit = 50, showHeader = true }: ClaimsTableProps)
 
   const queryClient = useQueryClient();
   const { toast } = useToast();
+  const [, setLocation] = useLocation();
 
   const deleteMutation = useMutation({
     mutationFn: api.deleteClaim,
@@ -54,6 +56,30 @@ export function ClaimsTable({ limit = 50, showHeader = true }: ClaimsTableProps)
     if (confirm("Are you sure you want to delete this claim?")) {
       deleteMutation.mutate(claimId);
     }
+  };
+
+  const handleViewClaim = (claimId: string) => {
+    toast({
+      title: "View Claim",
+      description: `Opening detailed view for claim ${claimId}`,
+    });
+    setLocation("/claims");
+  };
+
+  const handleEditClaim = (claimId: string) => {
+    toast({
+      title: "Edit Claim",
+      description: `Opening edit form for claim ${claimId}`,
+    });
+    setLocation("/claims");
+  };
+
+  const handleViewOnMap = (claimId: string) => {
+    toast({
+      title: "View on Map",
+      description: `Showing claim ${claimId} on the interactive map`,
+    });
+    setLocation("/map");
   };
 
   const getStatusBadge = (status: string) => {
@@ -239,6 +265,7 @@ export function ClaimsTable({ limit = 50, showHeader = true }: ClaimsTableProps)
                         size="sm" 
                         variant="ghost"
                         className="text-primary hover:text-primary/80"
+                        onClick={() => handleViewClaim(claim.claimId)}
                         data-testid={`button-view-${claim.id}`}
                       >
                         <Eye className="h-4 w-4" />
@@ -247,6 +274,7 @@ export function ClaimsTable({ limit = 50, showHeader = true }: ClaimsTableProps)
                         size="sm" 
                         variant="ghost"
                         className="text-muted-foreground hover:text-foreground"
+                        onClick={() => handleEditClaim(claim.claimId)}
                         data-testid={`button-edit-${claim.id}`}
                       >
                         <Edit className="h-4 w-4" />
@@ -255,6 +283,7 @@ export function ClaimsTable({ limit = 50, showHeader = true }: ClaimsTableProps)
                         size="sm" 
                         variant="ghost"
                         className="text-muted-foreground hover:text-foreground"
+                        onClick={() => handleViewOnMap(claim.claimId)}
                         data-testid={`button-map-${claim.id}`}
                       >
                         <MapPin className="h-4 w-4" />
