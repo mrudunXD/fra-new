@@ -19,13 +19,38 @@ interface OCRReviewModalProps {
 
 export function OCRReviewModal({ isOpen, onClose, ocrData }: OCRReviewModalProps) {
   const [formData, setFormData] = useState({
+    // Basic Information
     claimantName: "",
+    spouseName: "",
+    fatherMotherName: "",
+    address: "",
     village: "",
+    gramPanchayat: "",
+    tehsilTaluka: "",
+    district: "",
+    state: "",
+    
+    // Tribal Status
+    scheduledTribe: "",
+    scheduledTribeCertificate: "",
+    otherTraditionalForestDweller: "",
+    spouseScheduledTribe: "",
+    
+    // Family Members (will be stored as JSON)
+    familyMembers: [] as Array<{name: string; age: number; relation: string}>,
+    
+    // Land Claims
+    landForHabitation: "",
+    landForSelfCultivation: "",
+    disputedLands: "",
+    pattasLeasesGrants: "",
+    landForRehabilitationAlternative: "",
+    landDisplacedWithoutCompensation: "",
+    
+    // Legacy fields
     claimId: "",
     area: "",
     surveyNumber: "",
-    district: "",
-    state: "",
   });
   
   const { toast } = useToast();
@@ -36,13 +61,38 @@ export function OCRReviewModal({ isOpen, onClose, ocrData }: OCRReviewModalProps
     if (ocrData?.ocrResult) {
       const result = ocrData.ocrResult;
       setFormData({
+        // Basic Information
         claimantName: result.claimantName || "",
+        spouseName: result.spouseName || "",
+        fatherMotherName: result.fatherMotherName || "",
+        address: result.address || "",
         village: result.village || "",
+        gramPanchayat: result.gramPanchayat || "",
+        tehsilTaluka: result.tehsilTaluka || "",
+        district: result.district || "",
+        state: result.state || "",
+        
+        // Tribal Status
+        scheduledTribe: result.scheduledTribe || "",
+        scheduledTribeCertificate: result.scheduledTribeCertificate || "",
+        otherTraditionalForestDweller: result.otherTraditionalForestDweller || "",
+        spouseScheduledTribe: result.spouseScheduledTribe || "",
+        
+        // Family Members
+        familyMembers: result.familyMembers || [],
+        
+        // Land Claims
+        landForHabitation: result.landForHabitation?.toString() || "",
+        landForSelfCultivation: result.landForSelfCultivation?.toString() || "",
+        disputedLands: result.disputedLands?.toString() || "",
+        pattasLeasesGrants: result.pattasLeasesGrants?.toString() || "",
+        landForRehabilitationAlternative: result.landForRehabilitationAlternative?.toString() || "",
+        landDisplacedWithoutCompensation: result.landDisplacedWithoutCompensation?.toString() || "",
+        
+        // Legacy fields
         claimId: result.claimId || "",
         area: result.area || "",
         surveyNumber: result.surveyNumber || "",
-        district: result.district || "",
-        state: result.state || "",
       });
     }
   }, [ocrData]);
@@ -166,103 +216,364 @@ export function OCRReviewModal({ isOpen, onClose, ocrData }: OCRReviewModalProps
               </Badge>
             </div>
             
-            <div className="space-y-4">
+            <div className="space-y-6">
+              {/* Basic Information Section */}
               <div>
-                <Label htmlFor="claimantName" className="text-xs font-medium text-muted-foreground">
-                  Claimant Name *
-                </Label>
-                <Input
-                  id="claimantName"
-                  value={formData.claimantName}
-                  onChange={(e) => handleInputChange("claimantName", e.target.value)}
-                  className={`mt-1 ${fieldClass(true)}`}
-                  data-testid="input-claimant-name"
-                />
-              </div>
-              
-              <div>
-                <Label htmlFor="village" className="text-xs font-medium text-muted-foreground">
-                  Village *
-                </Label>
-                <Input
-                  id="village"
-                  value={formData.village}
-                  onChange={(e) => handleInputChange("village", e.target.value)}
-                  className={`mt-1 ${fieldClass(true)}`}
-                  data-testid="input-village"
-                />
-              </div>
-              
-              <div>
-                <Label htmlFor="claimId" className="text-xs font-medium text-muted-foreground">
-                  Claim ID *
-                </Label>
-                <Input
-                  id="claimId"
-                  value={formData.claimId}
-                  onChange={(e) => handleInputChange("claimId", e.target.value)}
-                  className={`mt-1 ${fieldClass(true)}`}
-                  data-testid="input-claim-id"
-                />
-              </div>
-              
-              <div>
-                <Label htmlFor="area" className="text-xs font-medium text-muted-foreground">
-                  Area (Hectares) *
-                </Label>
-                <Input
-                  id="area"
-                  type="number"
-                  step="0.01"
-                  value={formData.area}
-                  onChange={(e) => handleInputChange("area", e.target.value)}
-                  className={`mt-1 ${fieldClass(true)}`}
-                  data-testid="input-area"
-                />
-              </div>
-              
-              <div>
-                <Label htmlFor="surveyNumber" className="text-xs font-medium text-muted-foreground">
-                  Survey Number
-                </Label>
-                <Input
-                  id="surveyNumber"
-                  value={formData.surveyNumber}
-                  onChange={(e) => handleInputChange("surveyNumber", e.target.value)}
-                  className="mt-1"
-                  data-testid="input-survey-number"
-                />
-              </div>
-              
-              <div className="grid grid-cols-2 gap-2">
-                <div>
-                  <Label htmlFor="district" className="text-xs font-medium text-muted-foreground">
-                    District
-                  </Label>
-                  <Input
-                    id="district"
-                    value={formData.district}
-                    onChange={(e) => handleInputChange("district", e.target.value)}
-                    className="mt-1"
-                    data-testid="input-district"
-                  />
+                <h5 className="text-sm font-semibold text-foreground mb-3 border-b border-border pb-1">
+                  Basic Information
+                </h5>
+                <div className="grid grid-cols-1 gap-3">
+                  <div>
+                    <Label htmlFor="claimantName" className="text-xs font-medium text-muted-foreground">
+                      1. Name of the claimant *
+                    </Label>
+                    <Input
+                      id="claimantName"
+                      value={formData.claimantName}
+                      onChange={(e) => handleInputChange("claimantName", e.target.value)}
+                      className={`mt-1 ${fieldClass(true)}`}
+                      data-testid="input-claimant-name"
+                    />
+                  </div>
+                  
+                  <div>
+                    <Label htmlFor="spouseName" className="text-xs font-medium text-muted-foreground">
+                      2. Name of the spouse
+                    </Label>
+                    <Input
+                      id="spouseName"
+                      value={formData.spouseName}
+                      onChange={(e) => handleInputChange("spouseName", e.target.value)}
+                      className="mt-1"
+                      data-testid="input-spouse-name"
+                    />
+                  </div>
+                  
+                  <div>
+                    <Label htmlFor="fatherMotherName" className="text-xs font-medium text-muted-foreground">
+                      3. Name of father/mother
+                    </Label>
+                    <Input
+                      id="fatherMotherName"
+                      value={formData.fatherMotherName}
+                      onChange={(e) => handleInputChange("fatherMotherName", e.target.value)}
+                      className="mt-1"
+                      data-testid="input-father-mother-name"
+                    />
+                  </div>
+                  
+                  <div>
+                    <Label htmlFor="address" className="text-xs font-medium text-muted-foreground">
+                      4. Address
+                    </Label>
+                    <Input
+                      id="address"
+                      value={formData.address}
+                      onChange={(e) => handleInputChange("address", e.target.value)}
+                      className="mt-1"
+                      data-testid="input-address"
+                    />
+                  </div>
+                  
+                  <div className="grid grid-cols-2 gap-2">
+                    <div>
+                      <Label htmlFor="village" className="text-xs font-medium text-muted-foreground">
+                        5. Village *
+                      </Label>
+                      <Input
+                        id="village"
+                        value={formData.village}
+                        onChange={(e) => handleInputChange("village", e.target.value)}
+                        className={`mt-1 ${fieldClass(true)}`}
+                        data-testid="input-village"
+                      />
+                    </div>
+                    
+                    <div>
+                      <Label htmlFor="gramPanchayat" className="text-xs font-medium text-muted-foreground">
+                        6. Gram Panchayat
+                      </Label>
+                      <Input
+                        id="gramPanchayat"
+                        value={formData.gramPanchayat}
+                        onChange={(e) => handleInputChange("gramPanchayat", e.target.value)}
+                        className="mt-1"
+                        data-testid="input-gram-panchayat"
+                      />
+                    </div>
+                  </div>
+                  
+                  <div className="grid grid-cols-2 gap-2">
+                    <div>
+                      <Label htmlFor="tehsilTaluka" className="text-xs font-medium text-muted-foreground">
+                        7. Tehsil/Taluka
+                      </Label>
+                      <Input
+                        id="tehsilTaluka"
+                        value={formData.tehsilTaluka}
+                        onChange={(e) => handleInputChange("tehsilTaluka", e.target.value)}
+                        className="mt-1"
+                        data-testid="input-tehsil-taluka"
+                      />
+                    </div>
+                    
+                    <div>
+                      <Label htmlFor="district" className="text-xs font-medium text-muted-foreground">
+                        8. District
+                      </Label>
+                      <Input
+                        id="district"
+                        value={formData.district}
+                        onChange={(e) => handleInputChange("district", e.target.value)}
+                        className="mt-1"
+                        data-testid="input-district"
+                      />
+                    </div>
+                  </div>
+                  
+                  <div>
+                    <Label htmlFor="state" className="text-xs font-medium text-muted-foreground">
+                      State
+                    </Label>
+                    <Input
+                      id="state"
+                      value={formData.state}
+                      onChange={(e) => handleInputChange("state", e.target.value)}
+                      className="mt-1"
+                      data-testid="input-state"
+                    />
+                  </div>
                 </div>
-                
-                <div>
-                  <Label htmlFor="state" className="text-xs font-medium text-muted-foreground">
-                    State
-                  </Label>
-                  <Input
-                    id="state"
-                    value={formData.state}
-                    onChange={(e) => handleInputChange("state", e.target.value)}
-                    className="mt-1"
-                    data-testid="input-state"
-                  />
+              </div>
+
+              {/* Tribal Status Section */}
+              <div>
+                <h5 className="text-sm font-semibold text-foreground mb-3 border-b border-border pb-1">
+                  9. Tribal Status
+                </h5>
+                <div className="grid grid-cols-1 gap-3">
+                  <div className="grid grid-cols-2 gap-2">
+                    <div>
+                      <Label htmlFor="scheduledTribe" className="text-xs font-medium text-muted-foreground">
+                        (a) Scheduled Tribe
+                      </Label>
+                      <select
+                        id="scheduledTribe"
+                        value={formData.scheduledTribe}
+                        onChange={(e) => handleInputChange("scheduledTribe", e.target.value)}
+                        className="mt-1 w-full px-3 py-2 text-sm border border-border rounded-md"
+                        data-testid="select-scheduled-tribe"
+                      >
+                        <option value="">Select</option>
+                        <option value="Yes">Yes</option>
+                        <option value="No">No</option>
+                      </select>
+                    </div>
+                    
+                    <div>
+                      <Label htmlFor="otherTraditionalForestDweller" className="text-xs font-medium text-muted-foreground">
+                        (b) Other Traditional Forest Dweller
+                      </Label>
+                      <select
+                        id="otherTraditionalForestDweller"
+                        value={formData.otherTraditionalForestDweller}
+                        onChange={(e) => handleInputChange("otherTraditionalForestDweller", e.target.value)}
+                        className="mt-1 w-full px-3 py-2 text-sm border border-border rounded-md"
+                        data-testid="select-other-traditional"
+                      >
+                        <option value="">Select</option>
+                        <option value="Yes">Yes</option>
+                        <option value="No">No</option>
+                      </select>
+                    </div>
+                  </div>
+                  
+                  <div>
+                    <Label htmlFor="scheduledTribeCertificate" className="text-xs font-medium text-muted-foreground">
+                      ST Certificate Details
+                    </Label>
+                    <Input
+                      id="scheduledTribeCertificate"
+                      value={formData.scheduledTribeCertificate}
+                      onChange={(e) => handleInputChange("scheduledTribeCertificate", e.target.value)}
+                      className="mt-1"
+                      placeholder="Certificate Number/Details"
+                      data-testid="input-st-certificate"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Legacy Fields */}
+              <div>
+                <h5 className="text-sm font-semibold text-foreground mb-3 border-b border-border pb-1">
+                  Claim Details
+                </h5>
+                <div className="grid grid-cols-1 gap-3">
+                  <div>
+                    <Label htmlFor="claimId" className="text-xs font-medium text-muted-foreground">
+                      Claim ID *
+                    </Label>
+                    <Input
+                      id="claimId"
+                      value={formData.claimId}
+                      onChange={(e) => handleInputChange("claimId", e.target.value)}
+                      className={`mt-1 ${fieldClass(true)}`}
+                      data-testid="input-claim-id"
+                    />
+                  </div>
+                  
+                  <div className="grid grid-cols-2 gap-2">
+                    <div>
+                      <Label htmlFor="area" className="text-xs font-medium text-muted-foreground">
+                        Total Area (Hectares) *
+                      </Label>
+                      <Input
+                        id="area"
+                        type="number"
+                        step="0.01"
+                        value={formData.area}
+                        onChange={(e) => handleInputChange("area", e.target.value)}
+                        className={`mt-1 ${fieldClass(true)}`}
+                        data-testid="input-area"
+                      />
+                    </div>
+                    
+                    <div>
+                      <Label htmlFor="surveyNumber" className="text-xs font-medium text-muted-foreground">
+                        Survey Number
+                      </Label>
+                      <Input
+                        id="surveyNumber"
+                        value={formData.surveyNumber}
+                        onChange={(e) => handleInputChange("surveyNumber", e.target.value)}
+                        className="mt-1"
+                        data-testid="input-survey-number"
+                      />
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
+        </div>
+
+        {/* Nature of Claim on Land */}
+        <div className="mt-6">
+          <h4 className="text-sm font-semibold text-foreground mb-3 border-b border-border pb-1">
+            Nature of Claim on Land (Hectares)
+          </h4>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <Label htmlFor="landForHabitation" className="text-xs font-medium text-muted-foreground">
+                (a) For habitation
+              </Label>
+              <Input
+                id="landForHabitation"
+                type="number"
+                step="0.01"
+                value={formData.landForHabitation}
+                onChange={(e) => handleInputChange("landForHabitation", e.target.value)}
+                className="mt-1"
+                data-testid="input-land-habitation"
+              />
+            </div>
+            
+            <div>
+              <Label htmlFor="landForSelfCultivation" className="text-xs font-medium text-muted-foreground">
+                (b) For self-cultivation
+              </Label>
+              <Input
+                id="landForSelfCultivation"
+                type="number"
+                step="0.01"
+                value={formData.landForSelfCultivation}
+                onChange={(e) => handleInputChange("landForSelfCultivation", e.target.value)}
+                className="mt-1"
+                data-testid="input-land-cultivation"
+              />
+            </div>
+            
+            <div>
+              <Label htmlFor="disputedLands" className="text-xs font-medium text-muted-foreground">
+                2. Disputed lands if any
+              </Label>
+              <Input
+                id="disputedLands"
+                type="number"
+                step="0.01"
+                value={formData.disputedLands}
+                onChange={(e) => handleInputChange("disputedLands", e.target.value)}
+                className="mt-1"
+                data-testid="input-disputed-lands"
+              />
+            </div>
+            
+            <div>
+              <Label htmlFor="pattasLeasesGrants" className="text-xs font-medium text-muted-foreground">
+                3. Pattas/leases/grants
+              </Label>
+              <Input
+                id="pattasLeasesGrants"
+                type="number"
+                step="0.01"
+                value={formData.pattasLeasesGrants}
+                onChange={(e) => handleInputChange("pattasLeasesGrants", e.target.value)}
+                className="mt-1"
+                data-testid="input-pattas-leases"
+              />
+            </div>
+            
+            <div>
+              <Label htmlFor="landForRehabilitationAlternative" className="text-xs font-medium text-muted-foreground">
+                4. Land for rehabilitation/alternative
+              </Label>
+              <Input
+                id="landForRehabilitationAlternative"
+                type="number"
+                step="0.01"
+                value={formData.landForRehabilitationAlternative}
+                onChange={(e) => handleInputChange("landForRehabilitationAlternative", e.target.value)}
+                className="mt-1"
+                data-testid="input-rehabilitation-land"
+              />
+            </div>
+            
+            <div>
+              <Label htmlFor="landDisplacedWithoutCompensation" className="text-xs font-medium text-muted-foreground">
+                5. Land displaced without compensation
+              </Label>
+              <Input
+                id="landDisplacedWithoutCompensation"
+                type="number"
+                step="0.01"
+                value={formData.landDisplacedWithoutCompensation}
+                onChange={(e) => handleInputChange("landDisplacedWithoutCompensation", e.target.value)}
+                className="mt-1"
+                data-testid="input-displaced-land"
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* Family Members */}
+        <div className="mt-6">
+          <h4 className="text-sm font-semibold text-foreground mb-3 border-b border-border pb-1">
+            10. Family Members
+          </h4>
+          {formData.familyMembers.length > 0 ? (
+            <div className="space-y-2">
+              {formData.familyMembers.map((member, index) => (
+                <div key={index} className="grid grid-cols-3 gap-2 p-2 bg-muted/50 rounded">
+                  <div className="text-sm">{member.name}</div>
+                  <div className="text-sm">{member.age} years</div>
+                  <div className="text-sm text-muted-foreground">{member.relation}</div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="text-sm text-muted-foreground">No family members extracted</p>
+          )}
         </div>
 
         {/* Raw OCR Output */}

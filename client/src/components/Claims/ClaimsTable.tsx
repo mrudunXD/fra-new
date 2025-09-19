@@ -63,7 +63,7 @@ export function ClaimsTable({ limit = 50, showHeader = true }: ClaimsTableProps)
       title: "View Claim",
       description: `Opening detailed view for claim ${claimId}`,
     });
-    setLocation("/claims");
+    setLocation(`/claims/${claimId}`);
   };
 
   const handleEditClaim = (claimId: string) => {
@@ -71,7 +71,7 @@ export function ClaimsTable({ limit = 50, showHeader = true }: ClaimsTableProps)
       title: "Edit Claim",
       description: `Opening edit form for claim ${claimId}`,
     });
-    setLocation("/claims");
+    setLocation(`/claims/${claimId}/edit`);
   };
 
   const handleViewOnMap = (claimId: string) => {
@@ -79,7 +79,7 @@ export function ClaimsTable({ limit = 50, showHeader = true }: ClaimsTableProps)
       title: "View on Map",
       description: `Showing claim ${claimId} on the interactive map`,
     });
-    setLocation("/map");
+    setLocation(`/map?claim=${claimId}`);
   };
 
   const getStatusBadge = (status: string) => {
